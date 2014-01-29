@@ -1,0 +1,8 @@
+[
+    {
+        "id": "clearcache",
+        "label": "Clear cache on every refresh (set to true only during dev or when metadata is not updating properly)",
+        "type": "bool",
+        "default": "false"
+    }
+]
