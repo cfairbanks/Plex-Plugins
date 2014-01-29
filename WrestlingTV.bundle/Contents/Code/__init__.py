@@ -96,8 +96,8 @@ class WrestlingTVAgent(Agent.TV_Shows):
             results.Append(nextResult)
             Log(repr(nextResult))
 
-            search_url = TVRAGE_SEARCH_URL % String.Quote(media.show, True)
-            Log("Searching using URL: " + search_url)
+        search_url = TVRAGE_SEARCH_URL % String.Quote(media.show, True)
+        Log("Searching using URL: " + search_url)
         search_xml = XML.ElementFromURL(search_url)
         curscore = 49
         if media.show.lower().replace('-', ' ') == search_xml.xpath("//show/name")[0].text.lower().replace('-', ' '):
