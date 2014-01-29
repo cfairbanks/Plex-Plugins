@@ -18,3 +18,7 @@ They need to be set up in the format
 Show Name
  -> Season #
   -> Show Name - s##e## - (anything you want here, I like to use the date in yyyy.mm.dd format)
+
+# Debugging
+
+Logs are located in ~/Library/Logs/PMS Plugin Logs/com.plexapp.agents.wrestlingtv.log
