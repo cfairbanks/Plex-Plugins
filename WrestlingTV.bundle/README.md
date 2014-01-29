@@ -1,6 +1,8 @@
 WrestlingTV.bundle
 ===
 
+A Plex plugin to pull pro wrestling television information from TVRage. 
+
 # Install
 
 ## Mac
