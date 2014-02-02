@@ -2,15 +2,15 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleIdentifier</key>
-	<string>com.plexapp.agents.wrestlingtv</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.plexapp.agents.wrestlingtv</string>
     <key>PlexAgentAttributionText</key>
     <string>
         Wrestling television is primarily documented on &lt;a href=&quot;http://tvrage.com&quot;&gt;TVRage&lt;/a&gt;.
     </string>
-	<key>PlexFrameworkVersion</key>
-	<string>2</string>
-	<key>PlexPluginClass</key>
-	<string>Agent</string>
+    <key>PlexFrameworkVersion</key>
+    <string>2</string>
+    <key>PlexPluginClass</key>
+    <string>Agent</string>
 </dict>
 </plist>
