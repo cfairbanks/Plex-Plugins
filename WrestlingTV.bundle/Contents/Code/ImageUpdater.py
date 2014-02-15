@@ -193,7 +193,7 @@ class Updater():
 
 class TVDBImage:
     MAX_TVDB_IMAGE_RATING = 10
-    FALLBACK_SORT_ORDER = MAX_TVDB_IMAGE_RATING * 1000
+    FALLBACK_SORT_ORDER = 2000
 
     def __init__(self, xml=None):
         self.xml = xml
