@@ -1,7 +1,13 @@
 [
     {
-        "id": "clearcache",
+        "id": "clear_cache",
         "label": "Clear cache on every refresh (turn on if metadata is not updating properly, but don't forget to turn it off)",
+        "type": "bool",
+        "default": "false"
+    },
+    {
+        "id": "reset_image_sort",
+        "label": "Reset the image sort on every refresh (turn on if image metadata is not updating properly, but don't forget to turn it off)",
         "type": "bool",
         "default": "false"
     }

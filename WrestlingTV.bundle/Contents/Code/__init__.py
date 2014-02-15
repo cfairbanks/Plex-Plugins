@@ -24,7 +24,7 @@ class WrestlingTVAgent(Agent.TV_Shows):
     def search(self, results, media, lang, manual=False):
         Log("search: START")
 
-        if Prefs["clearcache"]:
+        if Prefs["clear_cache"]:
             Log("clearing http cache")
             HTTP.ClearCache()
 
@@ -65,7 +65,7 @@ class WrestlingTVAgent(Agent.TV_Shows):
         Log("update: START")
         Log(metadata.id)
 
-        if Prefs["clearcache"]:
+        if Prefs["clear_cache"]:
             Log("clearing http cache")
             HTTP.ClearCache()
 
@@ -88,8 +88,14 @@ class WrestlingTVAgent(Agent.TV_Shows):
         metadata.tags = [xml.xpath("/Showinfo/classification")[0].text]
         self.update_seasons(metadata.id, metadata.seasons, media.seasons)
 
+        if xml.xpath("/Showinfo/image") and xml.xpath("/Showinfo/image")[0].text != None:
+            fallback_image = xml.xpath("/Showinfo/image")[0].text
+        else:
+            fallback_image = None
+
         image_updater = ImageUpdater.Updater(metadata)
-        image_updater.update_images(media.seasons)
+        image_updater.update_images(media.seasons, fallback_image)
+
         Log("update: END")
 
     def update_seasons(self, tvrage_id, metadata_seasons, season_numbers):

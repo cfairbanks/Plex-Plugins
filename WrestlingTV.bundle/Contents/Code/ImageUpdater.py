@@ -82,80 +82,100 @@ class Updater():
         self.banners = metadata.banners
         self.posters = metadata.posters
         self.seasons = metadata.seasons
+        self.reset_image_sort = Prefs["reset_image_sort"]
 
-    def update_images(self, season_numbers):
+    def update_images(self, season_numbers, fallback_image_url=None):
         Log("update_images: START")
 
         data = self.fetch_banner_data()
 
-        i = 0
         for xml in data:
             image = TVDBImage(xml)
-            banner_type = image.get_type()
-            if banner_type == "fanart":
-                i += 1
-                self.update_art(image, i)
 
-        i = 0
-        for xml in data:
-            image = TVDBImage(xml)
-            banner_type = image.get_type()
-            if banner_type == "series":
-                i += 1
-                self.update_banners(image, i)
+            if image.is_art():
+                self.update_art(image)
+            elif image.is_banner():
+                self.update_banners(image)
+                self.update_season_banners(image, season_numbers)
+            elif image.is_poster():
+                self.update_posters(image)
+                self.update_season_posters(image, season_numbers)
+            elif image.is_season_banner():
+                self.update_season_banners(image, season_numbers)
+            elif image.is_season_poster():
+                self.update_season_posters(image, season_numbers)
 
-        i = 0
-        for xml in data:
-            image = TVDBImage(xml)
-            banner_type = image.get_type()
-            if banner_type == "season":
-                i += 1
-                self.update_seasons(image, season_numbers, i)
-
-        i = 0
-        for xml in data:
-            i += 1
-            image = TVDBImage(xml)
-            banner_type = image.get_type()
-            if banner_type == "poster":
-                self.update_posters(image, i)
-                self.update_posters_for_seasons(image, season_numbers)
+        self.update_posters_with_default_image(fallback_image_url, season_numbers)
 
         Log("update_images: END")
 
-    def update_art(self, image, i):
-        banner_url = image.get_url()
-        if banner_url not in self.art:
-            thumbnail = image.get_thumbnail_url()
-            if thumbnail:
-                self.art[banner_url] = Proxy.Preview(HTTP.Request(thumbnail), i)
+    def update_art(self, image):
+        image_url = image.get_url()
+        if self.reset_image_sort or image_url not in self.art:
+            thumbnail_url = image.get_thumbnail_url()
+            if thumbnail_url:
+                self.art[image_url] = Proxy.Preview(HTTP.Request(thumbnail_url), image.get_sort_order())
             else:
-                self.art[banner_url] = Proxy.Media(HTTP.Request(banner_url), i)
+                self.art[image_url] = Proxy.Media(HTTP.Request(image_url), image.get_sort_order())
 
-    def update_banners(self, image, i):
-        banner_url = image.get_url()
-        if banner_url not in self.banners:
-            thumbnail = image.get_thumbnail_url()
-            if thumbnail:
-                self.banners[banner_url] = Proxy.Preview(HTTP.Request(thumbnail), i)
+    def update_banners(self, image):
+        image_url = image.get_url()
+        if self.reset_image_sort or image_url not in self.banners:
+            thumbnail_url = image.get_thumbnail_url()
+            if thumbnail_url:
+                self.banners[image_url] = Proxy.Preview(HTTP.Request(thumbnail_url), image.get_sort_order())
             else:
-                self.banners[banner_url] = Proxy.Media(HTTP.Request(banner_url), i)
+                self.banners[image_url] = Proxy.Media(HTTP.Request(image_url), image.get_sort_order())
 
-    def update_posters(self, image, i):
-        banner_url = image.get_url()
-        if banner_url not in self.posters:
-            thumbnail = image.get_thumbnail_url()
-            if thumbnail:
-                self.posters[banner_url] = Proxy.Preview(HTTP.Request(thumbnail), i)
-            else:
-                self.posters[banner_url] = Proxy.Media(HTTP.Request(banner_url), i)
-
-    def update_posters_for_seasons(self, image, season_numbers):
-        banner_url = image.get_url()
+    def update_season_banners(self, image, season_numbers):
+        image_url = image.get_url()
         for season_number in season_numbers:
-            if banner_url not in self.seasons[season_number].posters:
-                count = len(self.seasons[season_number].posters)
-                self.seasons[season_number].posters[banner_url] = Proxy.Media(HTTP.Request(banner_url), count)
+            banner_season = image.get_season()
+            if (banner_season is None or banner_season == season_number) and \
+                    (self.reset_image_sort or image_url not in self.seasons[season_number].banners):
+                thumbnail_url = image.get_thumbnail_url()
+                if thumbnail_url:
+                    self.seasons[season_number].banners[image_url] = Proxy.Preview(HTTP.Request(thumbnail_url),
+                                                                                   image.get_sort_order_for_season())
+                else:
+                    self.seasons[season_number].banners[image_url] = Proxy.Media(HTTP.Request(image_url),
+                                                                                 image.get_sort_order_for_season())
+
+    def update_posters(self, image):
+        image_url = image.get_url()
+        thumbnail_url = image.get_thumbnail_url()
+        if self.reset_image_sort or image_url not in self.posters:
+            Log('adding poster ' + image_url + ' at sort %d' % image.get_sort_order())
+            if thumbnail_url:
+                self.posters[image_url] = Proxy.Preview(HTTP.Request(thumbnail_url), image.get_sort_order())
+            else:
+                self.posters[image_url] = Proxy.Media(HTTP.Request(image_url), image.get_sort_order())
+
+    def update_season_posters(self, image, season_numbers):
+        image_url = image.get_url()
+        thumbnail_url = image.get_thumbnail_url()
+        for season_number in season_numbers:
+            banner_season = image.get_season()
+            if (banner_season is None or banner_season == season_number) and \
+                    (self.reset_image_sort or image_url not in self.seasons[season_number].posters):
+                Log('adding season poster ' + image_url + ' at sort %d' % image.get_sort_order_for_season())
+                if thumbnail_url:
+                    self.seasons[season_number].posters[image_url] = Proxy.Preview(HTTP.Request(thumbnail_url),
+                                                                                   image.get_sort_order_for_season())
+                else:
+                    self.seasons[season_number].posters[image_url] = Proxy.Media(HTTP.Request(image_url),
+                                                                                 image.get_sort_order_for_season())
+
+    def update_posters_with_default_image(self, image_url, season_numbers):
+        if image_url:
+            if self.reset_image_sort or image_url not in self.posters:
+                Log('adding poster ' + image_url + ' at sort %d' % TVDBImage.FALLBACK_SORT_ORDER)
+                self.posters[image_url] = Proxy.Media(HTTP.Request(image_url), TVDBImage.FALLBACK_SORT_ORDER)
+            for season_number in season_numbers:
+                if self.reset_image_sort or image_url not in self.seasons[season_number].posters:
+                    Log('adding season poster ' + image_url + ' at sort %d' % TVDBImage.FALLBACK_SORT_ORDER)
+                    self.seasons[season_number].posters[image_url] = Proxy.Media(HTTP.Request(image_url),
+                                                                                 TVDBImage.FALLBACK_SORT_ORDER)
 
     def fetch_banner_data(self):
         if self.tvdb_id is not None:
@@ -163,17 +183,6 @@ class Updater():
             if xml:
                 return xml.xpath("/Banners/Banner")
         return []
-
-    def update_seasons(self, image, season_numbers, i):
-        banner_url = image.get_url()
-        banner_season = image.get_season()
-        if banner_season in season_numbers:
-            if image.is_season_poster():
-                if banner_url not in self.seasons[banner_season].posters:
-                    self.seasons[banner_season].posters[banner_url] = Proxy.Media(HTTP.Request(banner_url), i)
-            elif image.is_season_banner():
-                if banner_url not in self.seasons[banner_season].banners:
-                    self.seasons[banner_season].banners[banner_url] = Proxy.Media(HTTP.request(banner_url), i)
 
     def get_tvdb_id(self):
         if self.tvrage_id in TVDB_DICTIONARY:
@@ -183,6 +192,9 @@ class Updater():
 
 
 class TVDBImage:
+    MAX_TVDB_IMAGE_RATING = 10
+    FALLBACK_SORT_ORDER = MAX_TVDB_IMAGE_RATING * 1000
+
     def __init__(self, xml=None):
         self.xml = xml
 
@@ -198,17 +210,33 @@ class TVDBImage:
         else:
             return ''
 
-    def get_score(self):
-        if self.xml and self.xml.xpath("./Rating") and (self.xml.xpath("./Rating")[0].text is not None):
-            return int(10 * float(self.xml.xpath("./Rating")[0].text))
+    def get_sort_order(self):
+        """
+        Calculates the sort order for this image.
+        Lower values of sort order are given higher priority.
+        Zero is a bad sort value, use a minimum of one.
+        """
+        if self.get_rating() is not None:
+            return int((self.MAX_TVDB_IMAGE_RATING + 1 - self.get_rating()) * 10)
         else:
-            return 10
+            return (self.MAX_TVDB_IMAGE_RATING + 1) * 10
 
-    def get_score_for_season(self):
-        if self.xml and self.xml.xpath("./Rating") and (self.xml.xpath("./Rating")[0].text is not None):
-            return int(float(self.xml.xpath("./Rating")[0].text))
+    def get_sort_order_for_season(self):
+        """
+        Calculates the sort order for this image assuming it will be used for a season image.
+        If the image is of the expected season type, defer to the regular sort order.
+        Lower values of sort order are given higher priority.
+        """
+        if self.is_season_banner() or self.is_season_poster():
+            return self.get_sort_order()
         else:
-            return 1
+            return (self.get_sort_order() + self.MAX_TVDB_IMAGE_RATING + 2) * 10
+
+    def get_rating(self):
+        if self.xml and self.xml.xpath("./Rating") and self.xml.xpath("./Rating")[0].text is not None:
+            return float(self.xml.xpath("./Rating")[0].text)
+        else:
+            return None
 
     def get_type(self):
         if self.xml and self.xml.xpath("./BannerType"):
@@ -216,14 +244,29 @@ class TVDBImage:
         else:
             return None
 
-    def get_season(self):
-        if self.xml and self.xml.xpath("./Season"):
-            return self.xml.xpath("./Season")[0].text
+    def get_type2(self):
+        if self.xml and self.xml.xpath("./BannerType2"):
+            return self.xml.xpath("./BannerType2")[0].text
         else:
             return None
 
+    def get_season(self):
+        if self.xml and self.xml.xpath("./Season") and self.xml.xpath("./Season")[0].text is not None:
+            return int(self.xml.xpath("./Season")[0].text)
+        else:
+            return None
+
+    def is_art(self):
+        return self.get_type() == 'fanart'
+
+    def is_banner(self):
+        return self.get_type() == 'series'
+
+    def is_poster(self):
+        return self.get_type() == 'poster'
+
     def is_season_poster(self):
-        return self.xml and self.xml.xpath("./BannerType2") and self.xml.xpath("./BannerType2")[0].text == "season"
+        return self.get_type() == 'season' and self.get_type2() == "season"
 
     def is_season_banner(self):
-        return self.xml and self.xml.xpath("./BannerType2") and self.xml.xpath("./BannerType2")[0].text == "seasonwide"
+        return self.get_type() == 'season' and self.get_type2() == "seasonwide"
