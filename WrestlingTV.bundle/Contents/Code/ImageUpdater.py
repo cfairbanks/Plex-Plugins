@@ -4,88 +4,21 @@ TVDB_API_KEY = '607FE3FE16EDB11F'
 TVDB_BANNER_LIST_URL = 'http://thetvdb.com/api/%s/series/%%s/banners.xml' % TVDB_API_KEY
 TVDB_BANNER_BASE_URL = 'http://thetvdb.com/banners/'
 
-ECW_HARDCORE_TV_TVRAGE = '1598'
-ECW_HARDCORE_TV_TVDB = '76781'
-ECW_ON_SCIFI_TVRAGE = '12105'
-ECW_ON_SCIFI_TVDB = '79859'
-ECW_ON_TNN_TVRAGE = '1597'
-ECW_ON_TNN_TVDB = '76780'
-ECW_PPV_TVRAGE = '1413'
-ECW_PPV_TVDB = '73512'
-
-ROH_WRESTLING_TVRAGE = '29472'
-ROH_WRESTLING_TVDB = '266806'
-
-TNA_IMPACT_TVRAGE = '6368'
-TNA_IMPACT_TVDB = '264684'
-TNA_PPV_TVRAGE = '548'
-TNA_PPV_TVDB = ''
-
-WCW_NITRO_TVRAGE = '6547'
-WCW_NITRO_TVDB = '76962'
-WCW_THUNDER_TVRAGE = '6550'
-WCW_THUNDER_TVDB = '76782'
-WCW_WORLDWIDE_TVRAGE = '685'
-WCW_WORLDWIDE_TVDB = '71091'
-WCW_PPV_TVRAGE = '6548'
-WCW_PPV_TVDB = '276391'
-
-WWE_HEAT_TVRAGE = '5392'
-WWE_HEAT_TVDB = '72174'
-WWE_NXT_TVRAGE = '25100'
-WWE_NXT_TVDB = '144541'
-WWE_PPV_TVRAGE = '6652'
-WWE_PPV_TVDB = '70353'
-WWE_RAW_TVRAGE = '6659'
-WWE_RAW_TVDB = '76779'
-WWE_SHOTGUN_TVRAGE = '6661'
-WWE_SHOTGUN_TVDB = ''
-WWE_SMACKDOWN_TVRAGE = '6655'
-WWE_SMACKDOWN_TVDB = '75640'
-WWE_TOTAL_DIVAS_TVRAGE = '35554'
-WWE_TOTAL_DIVAS_TVDB = '271525'
-WWE_TOUGH_ENOUGH_TVRAGE = '6656'
-WWE_TOUGH_ENOUGH_TVDB = '76775'
-
-TVDB_DICTIONARY = {
-    ECW_HARDCORE_TV_TVRAGE: ECW_HARDCORE_TV_TVDB,
-    ECW_ON_SCIFI_TVRAGE: ECW_ON_SCIFI_TVDB,
-    ECW_ON_TNN_TVRAGE: ECW_ON_TNN_TVDB,
-    ECW_PPV_TVRAGE: ECW_PPV_TVDB,
-
-    ROH_WRESTLING_TVRAGE: ROH_WRESTLING_TVDB,
-
-    TNA_IMPACT_TVRAGE: TNA_IMPACT_TVDB,
-    TNA_PPV_TVRAGE: TNA_PPV_TVDB,
-
-    WCW_NITRO_TVRAGE: WCW_NITRO_TVDB,
-    WCW_THUNDER_TVRAGE: WCW_THUNDER_TVDB,
-    WCW_WORLDWIDE_TVRAGE: WCW_WORLDWIDE_TVDB,
-    WCW_PPV_TVRAGE: WCW_PPV_TVDB,
-
-    WWE_HEAT_TVRAGE: WWE_HEAT_TVDB,
-    WWE_NXT_TVRAGE: WWE_NXT_TVDB,
-    WWE_PPV_TVRAGE: WWE_PPV_TVDB,
-    WWE_RAW_TVRAGE: WWE_RAW_TVDB,
-    WWE_SHOTGUN_TVRAGE: WWE_SHOTGUN_TVDB,
-    WWE_SMACKDOWN_TVRAGE: WWE_SMACKDOWN_TVDB,
-    WWE_TOTAL_DIVAS_TVRAGE: WWE_TOTAL_DIVAS_TVDB,
-    WWE_TOUGH_ENOUGH_TVRAGE: WWE_TOUGH_ENOUGH_TVDB,
-}
-
 
 class Updater():
-    def __init__(self, metadata):
+    def __init__(self, metadata, tvdb_id, season_numbers, fallback_image_url):
         self.tvrage_id = metadata.id
-        self.tvdb_id = self.get_tvdb_id()
         self.art = metadata.art
         self.banners = metadata.banners
         self.posters = metadata.posters
         self.seasons = metadata.seasons
+        self.tvdb_id = tvdb_id
+        self.season_numbers = season_numbers
+        self.fallback_image_url = fallback_image_url
         self.reset_image_sort = Prefs["reset_image_sort"]
 
-    def update_images(self, season_numbers, fallback_image_url=None):
-        Log("update_images: START")
+    def update(self):
+        Log("update %s: START" % self.tvrage_id)
 
         data = self.fetch_banner_data()
 
@@ -96,18 +29,18 @@ class Updater():
                 self.update_art(image)
             elif image.is_banner():
                 self.update_banners(image)
-                self.update_season_banners(image, season_numbers)
+                self.update_season_banners(image)
             elif image.is_poster():
                 self.update_posters(image)
-                self.update_season_posters(image, season_numbers)
+                self.update_season_posters(image)
             elif image.is_season_banner():
-                self.update_season_banners(image, season_numbers)
+                self.update_season_banners(image)
             elif image.is_season_poster():
-                self.update_season_posters(image, season_numbers)
+                self.update_season_posters(image)
 
-        self.update_posters_with_default_image(fallback_image_url, season_numbers)
+        self.update_posters_with_default_image()
 
-        Log("update_images: END")
+        Log("update: END")
 
     def update_art(self, image):
         image_url = image.get_url()
@@ -127,11 +60,11 @@ class Updater():
             else:
                 self.banners[image_url] = Proxy.Media(HTTP.Request(image_url), image.get_sort_order())
 
-    def update_season_banners(self, image, season_numbers):
+    def update_season_banners(self, image):
         image_url = image.get_url()
-        for season_number in season_numbers:
-            banner_season = image.get_season()
-            if (banner_season is None or banner_season == season_number) and \
+        for season_number in self.season_numbers:
+            image_season = image.get_season()
+            if (image_season is None or image_season == season_number) and \
                     (self.reset_image_sort or image_url not in self.seasons[season_number].banners):
                 thumbnail_url = image.get_thumbnail_url()
                 if thumbnail_url:
@@ -151,12 +84,12 @@ class Updater():
             else:
                 self.posters[image_url] = Proxy.Media(HTTP.Request(image_url), image.get_sort_order())
 
-    def update_season_posters(self, image, season_numbers):
+    def update_season_posters(self, image):
         image_url = image.get_url()
         thumbnail_url = image.get_thumbnail_url()
-        for season_number in season_numbers:
-            banner_season = image.get_season()
-            if (banner_season is None or banner_season == season_number) and \
+        for season_number in self.season_numbers:
+            image_season = image.get_season()
+            if (image_season is None or image_season == season_number) and \
                     (self.reset_image_sort or image_url not in self.seasons[season_number].posters):
                 Log('adding season poster ' + image_url + ' at sort %d' % image.get_sort_order_for_season())
                 if thumbnail_url:
@@ -166,12 +99,13 @@ class Updater():
                     self.seasons[season_number].posters[image_url] = Proxy.Media(HTTP.Request(image_url),
                                                                                  image.get_sort_order_for_season())
 
-    def update_posters_with_default_image(self, image_url, season_numbers):
+    def update_posters_with_default_image(self):
+        image_url = self.fallback_image_url
         if image_url:
             if self.reset_image_sort or image_url not in self.posters:
                 Log('adding poster ' + image_url + ' at sort %d' % TVDBImage.FALLBACK_SORT_ORDER)
                 self.posters[image_url] = Proxy.Media(HTTP.Request(image_url), TVDBImage.FALLBACK_SORT_ORDER)
-            for season_number in season_numbers:
+            for season_number in self.season_numbers:
                 if self.reset_image_sort or image_url not in self.seasons[season_number].posters:
                     Log('adding season poster ' + image_url + ' at sort %d' % TVDBImage.FALLBACK_SORT_ORDER)
                     self.seasons[season_number].posters[image_url] = Proxy.Media(HTTP.Request(image_url),
@@ -183,12 +117,6 @@ class Updater():
             if xml:
                 return xml.xpath("/Banners/Banner")
         return []
-
-    def get_tvdb_id(self):
-        if self.tvrage_id in TVDB_DICTIONARY:
-            return TVDB_DICTIONARY[self.tvrage_id]
-        else:
-            return None
 
 
 class TVDBImage:
