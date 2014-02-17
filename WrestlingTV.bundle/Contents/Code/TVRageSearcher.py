@@ -1,5 +1,8 @@
 import Network
 import TVRageConstants
+import tvrage
+
+MAX_ALTERNATE_TITLE_SEARCHES = 2
 
 
 class Searcher:
@@ -18,6 +21,7 @@ class Searcher:
 
         self.search_by_tvrage_id()
         self.search_by_tvrage_string()
+        self.check_alternate_titles()
 
         Log("search: END")
 
@@ -51,7 +55,8 @@ class Searcher:
                 i += 1
                 result_show = str(show_xml.xpath("./name")[0].text)
 
-                if show_name.lower().replace('-', ' ') == result_show.lower().replace('-', ' '):
+                if tvrage.sanitize_show_name(show_name) == tvrage.sanitize_show_name(result_show):
+                    Log("Found exact match in title %s" % result_show)
                     score = 100
                 else:
                     score = self.start_score - i
@@ -63,3 +68,26 @@ class Searcher:
                                                   lang=self.lang)
                 self.results.Append(nextResult)
                 Log(repr(nextResult))
+
+    def check_alternate_titles(self):
+        """
+        Checks up to the top MAX_ALTERNATE_TITLE_SEARCHES regular matches to see if we match an alternate title.
+        """
+        self.results.Sort('score', descending=True)
+        top_match_counter = 0
+        for result in self.results:
+            top_match_counter += 1
+            if result.score == 100:
+                return
+            elif top_match_counter <= MAX_ALTERNATE_TITLE_SEARCHES:
+                xml = Network.fetch_xml(TVRageConstants.TVRAGE_SHOW_INFO_URL % result.id)
+
+                if xml:
+                    for aka_xml in xml.xpath("./akas/aka"):
+                        for show_name in self.show_names:
+                            aka_show_name = str(aka_xml.text)
+                            Log("[%s] [%s]" %
+                                (tvrage.sanitize_show_name(show_name), tvrage.sanitize_show_name(aka_show_name)))
+                            if tvrage.sanitize_show_name(show_name) == tvrage.sanitize_show_name(aka_show_name):
+                                Log("Found exact match in alternate title %s" % aka_show_name)
+                                result.score = 100

@@ -1,4 +1,5 @@
 import re
+import tvrage
 
 ECW_HARDCORE_TV_TVRAGE = '1598'
 ECW_HARDCORE_TV_TVDB = '76781'
@@ -83,12 +84,6 @@ VARIATIONS_LIST = [
         'Ring Of Honor',
     ],
     [
-        'Smackdown',
-        'Smackdown!',
-        'Friday Night Smackdown',
-        'Friday Night Smackdown!',
-    ],
-    [
         'WCW',
         'World Championship Wrestling',
     ],
@@ -108,8 +103,8 @@ def convert_tvrage_to_tvdb(tvrage_id):
         return None
 
 
-def get_show_name_variations(show_name, ignore_case=True):
-    show_name_variations = [show_name]
+def get_show_name_variations(show_name):
+    candidates = [show_name.lower()]
 
     patterns = {
         "^%s\s+": "%s ",
@@ -121,13 +116,12 @@ def get_show_name_variations(show_name, ignore_case=True):
         for search_variation in variation_list:
             for replacement_variation in variation_list:
                 for search_pattern, replacement_pattern in patterns.iteritems():
-                    if ignore_case:
-                        search_regexp = re.compile(search_pattern % search_variation, re.IGNORECASE)
-                    else:
-                        search_regexp = re.compile(search_pattern % search_variation)
+                    search_regexp = re.compile(search_pattern % search_variation, re.IGNORECASE)
 
-                    show_name_variation = search_regexp.sub(replacement_pattern % replacement_variation, show_name)
-                    if show_name_variation not in show_name_variations:
-                        show_name_variations.append(show_name_variation)
+                    candidate = search_regexp.sub(replacement_pattern % replacement_variation,
+                                                  tvrage.sanitize_show_name(show_name))
 
-    return show_name_variations
+                    if candidate not in candidates:
+                        candidates.append(candidate)
+
+    return candidates
