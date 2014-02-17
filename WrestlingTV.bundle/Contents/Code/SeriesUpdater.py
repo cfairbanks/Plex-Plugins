@@ -2,12 +2,12 @@ import ImageUpdater
 import SeasonUpdater
 import TVRageConstants
 import Network
-import WrestlingConstants
 
 
 class Updater:
-    def __init__(self, metadata, media, lang, force_refresh=False):
+    def __init__(self, metadata, media, lang, tvdb_id=None, force_refresh=False):
         self.tvrage_id = metadata.id
+        self.tvdb_id = tvdb_id
         self.metadata = metadata
         self.media = media
         self.lang = lang
@@ -36,15 +36,13 @@ class Updater:
         SeasonUpdater.Updater(metadata, media.seasons).update()
 
     def update_images(self, metadata, media, series_xml):
-        tvdb_id = WrestlingConstants.convert_tvrage_to_tvdb(metadata.id)
-
         if series_xml.xpath("/Showinfo/image") and series_xml.xpath("/Showinfo/image")[0].text != None:
             fallback_image_url = series_xml.xpath("/Showinfo/image")[0].text
         else:
             fallback_image_url = None
 
         ImageUpdater.Updater(metadata=metadata,
-                             tvdb_id=tvdb_id,
+                             tvdb_id=self.tvdb_id,
                              season_numbers=media.seasons,
                              fallback_image_url=fallback_image_url,
                              force_refresh=self.force_refresh).update()

@@ -1,6 +1,7 @@
 import GoogleSearcher
 import SeriesUpdater
 import TVRageSearcher
+import WrestlingConstants
 
 
 def Start():
@@ -16,27 +17,37 @@ class WrestlingTVAgent(Agent.TV_Shows):
     languages = [Locale.Language.English]
     primary_provider = True
 
-    def search(self, results, media, lang, force_refresh=False):
+    def search(self, results, media, lang, manual=False):
         Log("search: START")
 
         if Prefs["clear_cache"]:
             Log("clearing http cache")
             HTTP.ClearCache()
 
-        TVRageSearcher.Searcher(results=results, media=media, lang=lang, force_refresh=force_refresh).search()
-        GoogleSearcher.Searcher(results=results, media=media, lang=lang, force_refresh=force_refresh).search()
+        TVRageSearcher.Searcher(results=results,
+                                media=media,
+                                lang=lang,
+                                force_refresh=manual).search()
+        GoogleSearcher.Searcher(results=results,
+                                media=media,
+                                lang=lang,
+                                force_refresh=manual).search()
         remove_duplicate_results(results)
 
         Log("search: END")
 
-    def update(self, metadata, media, lang, force_refresh=False):
+    def update(self, metadata, media, lang, force=False):
         Log("update: START")
 
         if Prefs["clear_cache"]:
             Log("clearing http cache")
             HTTP.ClearCache()
 
-        SeriesUpdater.Updater(metadata=metadata, media=media, lang=lang, force_refresh=force_refresh).update()
+        SeriesUpdater.Updater(metadata=metadata,
+                              media=media,
+                              lang=lang,
+                              tvdb_id=WrestlingConstants.convert_tvrage_to_tvdb(metadata.id),
+                              force_refresh=force).update()
 
         Log("update: END")
 
