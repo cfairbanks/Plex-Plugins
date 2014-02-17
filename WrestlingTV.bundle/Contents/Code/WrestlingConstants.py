@@ -73,7 +73,12 @@ VARIATIONS_LIST = [
     ['ECW', 'Extreme Championship Wrestling'],
     ['TNA', 'Total Non-stop Action'],
     ['ROH', 'Ring Of Honor'],
-    ['Smackdown', 'Friday Night Smackdown', 'Thursday Night Smackdown'],
+    [
+        'Smackdown',
+        'Smackdown!',
+        'Friday Night Smackdown',
+        'Friday Night Smackdown!',
+    ],
     ['WCW', 'World Championship Wrestling'],
     ['WWE', 'World Wrestling Entertainment', 'WWF', 'World Wrestling Federation'],
 ]
