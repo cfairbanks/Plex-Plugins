@@ -70,17 +70,34 @@ TVDB_DICTIONARY = {
 }
 
 VARIATIONS_LIST = [
-    ['ECW', 'Extreme Championship Wrestling'],
-    ['TNA', 'Total Non-stop Action'],
-    ['ROH', 'Ring Of Honor'],
+    [
+        'ECW',
+        'Extreme Championship Wrestling',
+    ],
+    [
+        'TNA',
+        'Total Non-stop Action',
+    ],
+    [
+        'ROH',
+        'Ring Of Honor',
+    ],
     [
         'Smackdown',
         'Smackdown!',
         'Friday Night Smackdown',
         'Friday Night Smackdown!',
     ],
-    ['WCW', 'World Championship Wrestling'],
-    ['WWE', 'World Wrestling Entertainment', 'WWF', 'World Wrestling Federation'],
+    [
+        'WCW',
+        'World Championship Wrestling',
+    ],
+    [
+        'WWE',
+        'World Wrestling Entertainment',
+        'WWF',
+        'World Wrestling Federation',
+    ],
 ]
 
 
