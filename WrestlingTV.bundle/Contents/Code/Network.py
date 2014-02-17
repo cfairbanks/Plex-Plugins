@@ -1,6 +1,6 @@
 import time
 
-netLock = Thread.Lock()
+netLock = Thread.Lock('tvrage-network')
 
 # Keep track of success/failures in a row.
 successCount = 0
@@ -23,6 +23,7 @@ def fetch_xml(url):
 
 
 def fetch(url, fetch_content=True):
+    global netLock
     global successCount
     global failureCount
     global RETRY_TIMEOUT
@@ -43,7 +44,7 @@ def fetch(url, fetch_content=True):
                     result = result.content
 
             except Ex.HTTPError, e:
-                # Fast fail a not found.
+                # if not found, bail without retrying
                 if e.code == 404:
                     return None
 
@@ -62,7 +63,6 @@ def fetch(url, fetch_content=True):
                     RETRY_TIMEOUT = max(MIN_RETRY_TIMEOUT, RETRY_TIMEOUT / 2)
                     successCount = 0
 
-                # DONE!
                 return result
 
             else:
