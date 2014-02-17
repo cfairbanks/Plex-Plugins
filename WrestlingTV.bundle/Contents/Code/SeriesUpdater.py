@@ -1,6 +1,6 @@
 import ImageUpdater
 import SeasonUpdater
-import TVRageConstants
+import tvrage
 import Network
 
 
@@ -15,7 +15,7 @@ class Updater:
 
     def update(self):
         Log("update %s: START" % self.tvrage_id)
-        xml = Network.fetch_xml(TVRageConstants.TVRAGE_SHOW_INFO_URL % self.tvrage_id)
+        xml = Network.fetch_xml(tvrage.SHOW_INFO_URL % self.tvrage_id)
 
         self.metadata.title = xml.xpath("/Showinfo/showname")[0].text
         if xml.xpath("/Showinfo/network"):

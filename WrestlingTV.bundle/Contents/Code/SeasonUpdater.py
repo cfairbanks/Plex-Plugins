@@ -1,5 +1,5 @@
 import Network
-import TVRageConstants
+import tvrage
 
 
 class Updater():
@@ -15,7 +15,7 @@ class Updater():
         """
         Log("update %s: START" % self.tvrage_id)
 
-        xml = Network.fetch_xml(TVRageConstants.TVRAGE_EPISODE_LIST_URL % self.tvrage_id)
+        xml = Network.fetch_xml(tvrage.EPISODE_LIST_URL % self.tvrage_id)
         if xml:
             for season_xml in xml.xpath("/Show/Episodelist/Season"):
                 self.update_season(season_xml)

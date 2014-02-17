@@ -1,5 +1,4 @@
 import Network
-import TVRageConstants
 import tvrage
 
 MAX_ALTERNATE_TITLE_SEARCHES = 2
@@ -30,7 +29,7 @@ class Searcher:
         If the show input is an integer, search by TVRage ID first, scoring the result using start_score.
         """
         if len(self.show_names) == 1 and self.show_names[0].isdigit():
-            xml = Network.fetch_xml(TVRageConstants.TVRAGE_SHOW_INFO_URL % self.show_names[0])
+            xml = Network.fetch_xml(tvrage.SHOW_INFO_URL % self.show_names[0])
             if xml:
                 result = MetadataSearchResult(id=str(xml.xpath("/Showinfo/showid")[0].text),
                                               name=str(xml.xpath("/Showinfo/showname")[0].text),
@@ -47,7 +46,7 @@ class Searcher:
         Otherwise, score each potential match starting from the start_score.
         """
         for show_name in self.show_names:
-            url = TVRageConstants.TVRAGE_SEARCH_URL % String.Quote(show_name, True)
+            url = tvrage.SEARCH_URL % String.Quote(show_name, True)
             xml = Network.fetch_xml(url)
 
             i = 0
@@ -80,7 +79,7 @@ class Searcher:
             if result.score == 100:
                 return
             elif top_match_counter <= MAX_ALTERNATE_TITLE_SEARCHES:
-                xml = Network.fetch_xml(TVRageConstants.TVRAGE_SHOW_INFO_URL % result.id)
+                xml = Network.fetch_xml(tvrage.SHOW_INFO_URL % result.id)
 
                 if xml:
                     for aka_xml in xml.xpath("./akas/aka"):
