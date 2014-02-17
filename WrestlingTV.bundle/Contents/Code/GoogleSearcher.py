@@ -28,9 +28,13 @@ class Searcher():
             tvrage_id = get_tvrage_id_from_url(result_url)
             if tvrage_id is not None:
                 Log("found tvrage ID %s" % tvrage_id)
-                result_media = GoogleMedia(tvrage_id)
                 score = self.start_score - i
-                TVRageSearcher.Searcher(self.results, result_media, self.lang, self.force_refresh, score).search_by_tvrage_id()
+                TVRageSearcher.Searcher(results=self.results,
+                                        show_names=[tvrage_id],
+                                        year=self.year_input,
+                                        lang=self.lang,
+                                        force_refresh=self.force_refresh,
+                                        start_score=score).search_by_tvrage_id()
                 i += 1
         Log("search: END")
 
@@ -60,12 +64,6 @@ class Searcher():
                     result_urls.append(result_url)
 
         return result_urls
-
-
-class GoogleMedia(Media):
-    def __init__(self, show):
-        Media.__init__(self)
-        self.show = show
 
 
 def get_tvrage_id_from_url(url):

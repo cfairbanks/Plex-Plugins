@@ -24,14 +24,19 @@ class WrestlingTVAgent(Agent.TV_Shows):
             Log("clearing http cache")
             HTTP.ClearCache()
 
+        variations = WrestlingConstants.get_show_name_variations(media.show)
+
         TVRageSearcher.Searcher(results=results,
-                                media=media,
+                                show_names=variations,
+                                year=media.year,
                                 lang=lang,
                                 force_refresh=manual).search()
+
         GoogleSearcher.Searcher(results=results,
                                 media=media,
                                 lang=lang,
                                 force_refresh=manual).search()
+
         remove_duplicate_results(results)
 
         Log("search: END")

@@ -1,3 +1,5 @@
+import re
+
 ECW_HARDCORE_TV_TVRAGE = '1598'
 ECW_HARDCORE_TV_TVDB = '76781'
 ECW_ON_SCIFI_TVRAGE = '12105'
@@ -67,8 +69,43 @@ TVDB_DICTIONARY = {
     WWE_TOUGH_ENOUGH_TVRAGE: WWE_TOUGH_ENOUGH_TVDB,
 }
 
+VARIATIONS_LIST = [
+    ['ECW', 'Extreme Championship Wrestling'],
+    ['TNA', 'Total Non-stop Action'],
+    ['ROH', 'Ring Of Honor'],
+    ['Smackdown', 'Friday Night Smackdown', 'Thursday Night Smackdown'],
+    ['WCW', 'World Championship Wrestling'],
+    ['WWE', 'World Wrestling Entertainment', 'WWF', 'World Wrestling Federation'],
+]
+
+
 def convert_tvrage_to_tvdb(tvrage_id):
     if tvrage_id in TVDB_DICTIONARY:
         return TVDB_DICTIONARY[tvrage_id]
     else:
         return None
+
+
+def get_show_name_variations(show_name, ignore_case=True):
+    show_name_variations = [show_name]
+
+    patterns = {
+        "^%s\s+": "%s ",
+        "\s+%s\s+": " %s ",
+        "\s+%s$": " %s",
+    }
+
+    for variation_list in VARIATIONS_LIST:
+        for search_variation in variation_list:
+            for replacement_variation in variation_list:
+                for search_pattern, replacement_pattern in patterns.iteritems():
+                    if ignore_case:
+                        search_regexp = re.compile(search_pattern % search_variation, re.IGNORECASE)
+                    else:
+                        search_regexp = re.compile(search_pattern % search_variation)
+
+                    sub = search_regexp.sub(replacement_pattern % replacement_variation, show_name)
+                    if sub not in variation_list:
+                        show_name_variations.append(sub)
+
+    return show_name_variations
