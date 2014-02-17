@@ -6,7 +6,7 @@ GOOGLE_JSON_TVRAGE = 'http://ajax.googleapis.com/ajax/services/search/web?v=1.0&
 
 
 class Searcher():
-    def __init__(self, results, media, lang, manual, start_score=20):
+    def __init__(self, results, media, lang, force_refresh=False, start_score=20):
         self.results = results
         self.show_input = media.show
 
@@ -17,7 +17,7 @@ class Searcher():
 
         self.media = media
         self.lang = lang
-        self.manual = manual
+        self.force_refresh = force_refresh
         self.start_score = start_score
 
     def search(self):
@@ -30,7 +30,7 @@ class Searcher():
                 Log("found tvrage ID %s" % tvrage_id)
                 result_media = GoogleMedia(tvrage_id)
                 score = self.start_score - i
-                TVRageSearcher.Searcher(self.results, result_media, self.lang, self.manual, score).search_by_tvrage_id()
+                TVRageSearcher.Searcher(self.results, result_media, self.lang, self.force_refresh, score).search_by_tvrage_id()
                 i += 1
         Log("search: END")
 

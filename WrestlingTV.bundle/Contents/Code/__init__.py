@@ -16,32 +16,36 @@ class WrestlingTVAgent(Agent.TV_Shows):
     languages = [Locale.Language.English]
     primary_provider = True
 
-    def search(self, results, media, lang, manual=False):
+    def search(self, results, media, lang, force_refresh=False):
         Log("search: START")
 
         if Prefs["clear_cache"]:
             Log("clearing http cache")
             HTTP.ClearCache()
 
-        TVRageSearcher.Searcher(results, media, lang, manual).search()
-        GoogleSearcher.Searcher(results, media, lang, manual).search()
+        TVRageSearcher.Searcher(results=results, media=media, lang=lang, force_refresh=force_refresh).search()
+        GoogleSearcher.Searcher(results=results, media=media, lang=lang, force_refresh=force_refresh).search()
         remove_duplicate_results(results)
 
         Log("search: END")
 
-    def update(self, metadata, media, lang):
+    def update(self, metadata, media, lang, force_refresh=False):
+        Log("update: START")
+
         if Prefs["clear_cache"]:
             Log("clearing http cache")
             HTTP.ClearCache()
 
-        SeriesUpdater.Updater(metadata, media, lang).update()
+        SeriesUpdater.Updater(metadata=metadata, media=media, lang=lang, force_refresh=force_refresh).update()
+
+        Log("update: END")
 
 
 def remove_duplicate_results(results):
     """
     Removes results with duplicate result IDs, making sure to keep the highest score for the id
     """
-    if (len(results) > 0):
+    if len(results) > 0:
         results.Sort('score', descending=True)
 
         to_remove = []

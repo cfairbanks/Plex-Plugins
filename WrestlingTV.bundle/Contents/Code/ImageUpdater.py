@@ -6,7 +6,7 @@ TVDB_BANNER_BASE_URL = 'http://thetvdb.com/banners/'
 
 
 class Updater():
-    def __init__(self, metadata, tvdb_id, season_numbers, fallback_image_url):
+    def __init__(self, metadata, tvdb_id=None, season_numbers=None, fallback_image_url=None, force_refresh=False):
         self.tvrage_id = metadata.id
         self.art = metadata.art
         self.banners = metadata.banners
@@ -15,7 +15,7 @@ class Updater():
         self.tvdb_id = tvdb_id
         self.season_numbers = season_numbers
         self.fallback_image_url = fallback_image_url
-        self.reset_image_sort = Prefs["reset_image_sort"]
+        self.reset_image_sort = force_refresh
 
     def update(self):
         Log("update %s: START" % self.tvrage_id)
@@ -45,6 +45,7 @@ class Updater():
     def update_art(self, image):
         image_url = image.get_url()
         if self.reset_image_sort or image_url not in self.art:
+            Log('adding art %s at sort %d' % (image_url, image.get_sort_order()))
             thumbnail_url = image.get_thumbnail_url()
             if thumbnail_url:
                 self.art[image_url] = Proxy.Preview(HTTP.Request(thumbnail_url), image.get_sort_order())
@@ -54,6 +55,7 @@ class Updater():
     def update_banners(self, image):
         image_url = image.get_url()
         if self.reset_image_sort or image_url not in self.banners:
+            Log('adding banner %s at sort %d' % (image_url, image.get_sort_order()))
             thumbnail_url = image.get_thumbnail_url()
             if thumbnail_url:
                 self.banners[image_url] = Proxy.Preview(HTTP.Request(thumbnail_url), image.get_sort_order())
@@ -62,10 +64,12 @@ class Updater():
 
     def update_season_banners(self, image):
         image_url = image.get_url()
+        image_season = image.get_season()
+
         for season_number in self.season_numbers:
-            image_season = image.get_season()
-            if (image_season is None or image_season == season_number) and \
+            if (image_season is None or image_season == int(season_number)) and \
                     (self.reset_image_sort or image_url not in self.seasons[season_number].banners):
+                Log('adding season %s banner %s at sort %d' % (season_number, image_url, image.get_sort_order()))
                 thumbnail_url = image.get_thumbnail_url()
                 if thumbnail_url:
                     self.seasons[season_number].banners[image_url] = Proxy.Preview(HTTP.Request(thumbnail_url),
@@ -87,11 +91,13 @@ class Updater():
     def update_season_posters(self, image):
         image_url = image.get_url()
         thumbnail_url = image.get_thumbnail_url()
+        image_season = image.get_season()
+
         for season_number in self.season_numbers:
-            image_season = image.get_season()
-            if (image_season is None or image_season == season_number) and \
+            if (image_season is None or image_season == int(season_number)) and \
                     (self.reset_image_sort or image_url not in self.seasons[season_number].posters):
-                Log('adding season poster ' + image_url + ' at sort %d' % image.get_sort_order_for_season())
+                Log('adding season %s poster %s at sort %d' % (
+                    season_number, image_url, image.get_sort_order_for_season()))
                 if thumbnail_url:
                     self.seasons[season_number].posters[image_url] = Proxy.Preview(HTTP.Request(thumbnail_url),
                                                                                    image.get_sort_order_for_season())
@@ -103,11 +109,12 @@ class Updater():
         image_url = self.fallback_image_url
         if image_url:
             if self.reset_image_sort or image_url not in self.posters:
-                Log('adding poster ' + image_url + ' at sort %d' % TVDBImage.FALLBACK_SORT_ORDER)
+                Log('adding poster %s at sort %d' % (image_url, TVDBImage.FALLBACK_SORT_ORDER))
                 self.posters[image_url] = Proxy.Media(HTTP.Request(image_url), TVDBImage.FALLBACK_SORT_ORDER)
             for season_number in self.season_numbers:
                 if self.reset_image_sort or image_url not in self.seasons[season_number].posters:
-                    Log('adding season poster ' + image_url + ' at sort %d' % TVDBImage.FALLBACK_SORT_ORDER)
+                    Log('adding season %s poster %s at sort %d' % (
+                        season_number, image_url, TVDBImage.FALLBACK_SORT_ORDER))
                     self.seasons[season_number].posters[image_url] = Proxy.Media(HTTP.Request(image_url),
                                                                                  TVDBImage.FALLBACK_SORT_ORDER)
 

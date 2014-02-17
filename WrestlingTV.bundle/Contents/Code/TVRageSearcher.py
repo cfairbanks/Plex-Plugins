@@ -3,10 +3,11 @@ import TVRageConstants
 
 
 class Searcher:
-    def __init__(self, results, media, lang, manual, start_score=60):
+    def __init__(self, results, media, lang, force_refresh=False, start_score=60):
         self.results = results
         self.show_input = media.show
         self.lang = lang
+        self.force_refresh = force_refresh
         self.start_score = start_score
 
     # TODO - when you unmatch a show and try to correct the match, plex doesn't automatically search

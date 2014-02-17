@@ -6,10 +6,12 @@ import WrestlingConstants
 
 
 class Updater:
-    def __init__(self, metadata, media, lang):
+    def __init__(self, metadata, media, lang, force_refresh=False):
         self.tvrage_id = metadata.id
         self.metadata = metadata
         self.media = media
+        self.lang = lang
+        self.force_refresh = force_refresh
 
     def update(self):
         Log("update %s: START" % self.tvrage_id)
@@ -41,4 +43,8 @@ class Updater:
         else:
             fallback_image_url = None
 
-        ImageUpdater.Updater(metadata, tvdb_id, media.seasons, fallback_image_url).update()
+        ImageUpdater.Updater(metadata=metadata,
+                             tvdb_id=tvdb_id,
+                             season_numbers=media.seasons,
+                             fallback_image_url=fallback_image_url,
+                             force_refresh=self.force_refresh).update()
