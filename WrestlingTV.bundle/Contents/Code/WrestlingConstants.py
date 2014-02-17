@@ -126,8 +126,8 @@ def get_show_name_variations(show_name, ignore_case=True):
                     else:
                         search_regexp = re.compile(search_pattern % search_variation)
 
-                    sub = search_regexp.sub(replacement_pattern % replacement_variation, show_name)
-                    if sub not in variation_list:
-                        show_name_variations.append(sub)
+                    show_name_variation = search_regexp.sub(replacement_pattern % replacement_variation, show_name)
+                    if show_name_variation not in show_name_variations:
+                        show_name_variations.append(show_name_variation)
 
     return show_name_variations
