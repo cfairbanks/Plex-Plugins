@@ -1,6 +1,7 @@
 import ImageUpdater
 import SeasonUpdater
-import TVRageNetwork
+import TVRageConstants
+import Network
 import WrestlingConstants
 
 
@@ -12,7 +13,7 @@ class Updater:
 
     def update(self):
         Log("update %s: START" % self.tvrage_id)
-        xml = TVRageNetwork.fetchXML(TVRageNetwork.TVRAGE_SHOW_INFO_URL % self.tvrage_id)
+        xml = Network.fetch_xml(TVRageConstants.TVRAGE_SHOW_INFO_URL % self.tvrage_id)
 
         self.metadata.title = xml.xpath("/Showinfo/showname")[0].text
         if xml.xpath("/Showinfo/network"):
@@ -30,8 +31,7 @@ class Updater:
         Log("update: END")
 
     def update_seasons(self, metadata, media):
-        season_updater = SeasonUpdater.Updater(metadata, media.seasons)
-        season_updater.update()
+        SeasonUpdater.Updater(metadata, media.seasons).update()
 
     def update_images(self, metadata, media, series_xml):
         tvdb_id = WrestlingConstants.convert_tvrage_to_tvdb(metadata.id)
@@ -41,5 +41,4 @@ class Updater:
         else:
             fallback_image_url = None
 
-        image_updater = ImageUpdater.Updater(metadata, tvdb_id, media.seasons, fallback_image_url)
-        image_updater.update()
+        ImageUpdater.Updater(metadata, tvdb_id, media.seasons, fallback_image_url).update()

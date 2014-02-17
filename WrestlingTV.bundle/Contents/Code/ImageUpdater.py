@@ -1,4 +1,4 @@
-import TVRageNetwork
+import Network
 
 TVDB_API_KEY = '607FE3FE16EDB11F'
 TVDB_BANNER_LIST_URL = 'http://thetvdb.com/api/%s/series/%%s/banners.xml' % TVDB_API_KEY
@@ -113,7 +113,7 @@ class Updater():
 
     def fetch_banner_data(self):
         if self.tvdb_id is not None:
-            xml = TVRageNetwork.fetchXML(TVDB_BANNER_LIST_URL % self.tvdb_id)
+            xml = Network.fetch_xml(TVDB_BANNER_LIST_URL % self.tvdb_id)
             if xml:
                 return xml.xpath("/Banners/Banner")
         return []

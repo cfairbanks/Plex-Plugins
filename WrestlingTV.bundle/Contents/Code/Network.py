@@ -1,12 +1,5 @@
 import time
 
-TVRAGE_API_KEY = 'P8q4BaUCuRJPYWys3RBV'
-# TVRAGE_API_KEY = 'bX9ymM850oC0KCZ88YZn'
-TVRAGE_SEARCH_URL = 'http://services.tvrage.com/myfeeds/search.php?key=%s&show=%%s' % TVRAGE_API_KEY
-TVRAGE_SHOW_INFO_URL = 'http://services.tvrage.com/myfeeds/showinfo.php?key=%s&sid=%%s' % TVRAGE_API_KEY
-TVRAGE_EPISODE_LIST_URL = 'http://services.tvrage.com/myfeeds/episode_list.php?key=%s&sid=%%s' % TVRAGE_API_KEY
-
-
 netLock = Thread.Lock()
 
 # Keep track of success/failures in a row.
@@ -20,7 +13,7 @@ TOTAL_TRIES = 3
 headers = {'User-agent': 'Plex/Nine'}
 
 
-def fetchXML(url):
+def fetch_xml(url):
     data = fetch(url)
 
     if (data):
@@ -29,8 +22,10 @@ def fetchXML(url):
         return None
 
 
-def fetch(url, fetchContent=True):
-    global successCount, failureCount, RETRY_TIMEOUT
+def fetch(url, fetch_content=True):
+    global successCount
+    global failureCount
+    global RETRY_TIMEOUT
 
     try:
         netLock.acquire()
@@ -44,7 +39,7 @@ def fetch(url, fetchContent=True):
             try:
                 result = HTTP.Request(url, headers=headers, timeout=60)
 
-                if fetchContent:
+                if fetch_content:
                     result = result.content
 
             except Ex.HTTPError, e:
@@ -80,8 +75,7 @@ def fetch(url, fetchContent=True):
                     RETRY_TIMEOUT = min(10, RETRY_TIMEOUT * 1.5)
                     failureCount = 0
 
-            # On the last tries, attempt to contact the original URL.
-            tries = tries - 1
+            tries -= 1
 
     finally:
         netLock.release()
